@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Al-Quran & Hafalan - membaca Al-Quran, target hafalan, murojaah, dan progres.">
+  <title>Al-Qur'an • Hafalan & Murojaah</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">۞</div>
+      <div><strong>Al-Qur'an</strong><span>Hafalan & Murojaah</span></div>
+    </div>
+    <nav>
+      <p>MENU</p>
+      <button class="nav active" data-page="home">⌂ <span>Beranda</span></button>
+      <button class="nav" data-page="quran">☷ <span>Al-Qur'an</span></button>
+      <button class="nav" data-page="hafalan">✦ <span>Target Hafalan</span></button>
+      <button class="nav" data-page="murojaah">↻ <span>Murojaah</span></button>
+      <button class="nav" data-page="catatan">▤ <span>Catatan</span></button>
+    </nav>
+    <div class="sidebar-quote">
+      <div>“</div>
+      <p>Dan sungguh, telah Kami mudahkan Al-Qur'an untuk pelajaran, maka adakah orang yang mau mengambil pelajaran?</p>
+      <small>QS. Al-Qamar: 17</small>
+    </div>
+    <div class="side-bottom">Semoga setiap ayat menjadi cahaya. 🤍</div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <button class="menu" id="menu">☰</button>
+      <div>
+        <div class="crumb">Al-Qur'an / <b id="crumb">Beranda</b></div>
+        <h1 id="title">Assalamu'alaikum 🌙</h1>
+      </div>
+      <div class="actions">
+        <div class="search"><span>⌕</span><input id="search" placeholder="Cari surah atau ayat..."></div>
+        <button class="round" id="theme" title="Mode tampilan">☼</button>
+      </div>
+    </header>
+
+    <section class="content">
+      <div id="home" class="page">
+        <section class="welcome">
+          <div>
+            <span class="eyebrow">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</span>
+            <h2>Temani perjalanan<br><b>menghafal Al-Qur'an</b></h2>
+            <p>Baca, tandai hafalan, susun target, dan jaga hafalan dengan murojaah yang teratur.</p>
+            <button class="primary" data-go="quran">Mulai Membaca <span>→</span></button>
+          </div>
+          <div class="ornament"><span>﷽</span><i>۞</i></div>
+        </section>
+
+
+        <article class="card prayer-card">
+          <div class="prayer-head"><div><span class="eyebrow">PENGINGAT IBADAH</span><h3>Waktu Shalat & Mode Adzan</h3><p id="prayerLocation">Memuat lokasi dan jadwal shalat...</p></div><div class="prayer-controls"><button class="tiny" id="refreshPrayer">↻ Perbarui</button><button class="primary small" id="testAdhan">▶ Putar Adzan</button></div></div>
+          <div class="prayer-times" id="prayerTimes"></div>
+          <div class="adhan-panel"><div><b>Mode Adzan Otomatis</b><span>Aktif saat masuk waktu shalat selama halaman web terbuka.</span></div><label class="tiny"><input type="checkbox" id="adhanEnabled"> Aktifkan</label><select id="adhanSound"><option value="marwan">Adzan Muhammad Marwan Al-Qassas (Madinah)</option></select><audio id="adhanAudio" controls preload="none"></audio></div>
+        </article>
+
+        <div class="stats">
+          <article><div class="icon blue">◉</div><span>Hafalan Selesai</span><strong id="doneStat">0 Juz</strong><small id="doneSub">Dari 30 Juz</small></article>
+          <article><div class="icon cream">✦</div><span>Target Aktif</span><strong id="targetStat">0</strong><small>Target hafalan</small></article>
+          <article><div class="icon green">↻</div><span>Murojaah</span><strong id="reviewStat">0</strong><small>Materi siap direview</small></article>
+          <article><div class="icon gold">✓</div><span>Streak</span><strong id="streakStat">0 hari</strong><small>Semangat terus!</small></article>
+        </div>
+
+        <div class="two">
+          <article class="card progress-card">
+            <div class="head"><div><h3>Progres Hafalan</h3><p>Perjalanan menuju 30 juz</p></div><button class="more" data-go="hafalan">Kelola →</button></div>
+            <div class="progress-row"><div><b id="progressPercent">0%</b><span>total progres</span></div><div class="progress"><i id="progressBar"></i></div></div>
+            <div class="juz-mini" id="juzMini"></div>
+          </article>
+          <article class="card today-card">
+            <div class="head"><div><h3>Target Hari Ini</h3><p id="todayDate"></p></div><button class="more" data-go="hafalan">Tambah</button></div>
+            <div id="todayList" class="today-list"></div>
+          </article>
+        </div>
+
+        <div class="two">
+          <article class="card">
+            <div class="head"><div><h3>Lanjutkan Membaca</h3><p>Terakhir dibaca</p></div></div>
+            <div class="continue">
+              <div class="surah-symbol">ٱ</div>
+              <div><b id="lastSurah">Al-Fatihah</b><span id="lastAyah">Ayat 1</span></div>
+              <button class="play" data-go="quran">Baca →</button>
+            </div>
+          </article>
+          <article class="card">
+            <div class="head"><div><h3>Murojaah Hari Ini</h3><p>Jaga hafalan tetap kuat</p></div><button class="more" data-go="murojaah">Lihat →</button></div>
+            <div class="review-box"><div class="review-ring" id="reviewRing">0%</div><div><b id="reviewText">Belum ada murojaah</b><span>Tandai juz yang sudah dimurojaah hari ini.</span></div></div>
+          </article>
+        </div>
+      </div>
+
+      <div id="quran" class="page hidden">
+        <div class="page-heading"><div><span class="eyebrow">MUSHAF DIGITAL</span><h2>Al-Qur'an</h2><p>Pilih juz 1–30 untuk membaca ayat.</p></div><button class="primary small" id="randomAyah">Ayat Acak ✦</button></div>
+        <div class="quran-layout">
+          <aside class="juz-panel card"><div class="panel-title">Daftar Juz <span>30</span></div><div id="juzGrid" class="juz-grid"></div></aside>
+          <article class="reader card">
+            <div class="reader-head"><div><span id="readerJuz">Juz 1</span><h3 id="readerSurah">Memuat...</h3><select id="reciterSelect" class="reciter-select"><option value="alafasy">Mishary Rashid Alafasy</option><option value="yasser">Yasser Al-Dosari</option><option value="sudais">Abdurrahman As-Sudais</option></select></div><button class="more" id="readerTop">↑ Atas</button></div>
+            <div id="quranLoading" class="loading">Memuat ayat Al-Qur'an...</div>
+            <div id="ayahList" class="ayah-list"></div>
+            <div class="audio-player" id="audioPlayer">
+              <div class="audio-info">
+                <div class="audio-icon">♫</div>
+                <div><b id="audioTitle">Murottal Mishary Rashid Alafasy</b><span id="audioSub">Pilih ayat untuk mulai mendengarkan</span></div>
+              </div>
+              <audio id="murottalAudio" controls preload="none"></audio>
+              <button class="tiny" id="closeAudio">Tutup</button>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div id="hafalan" class="page hidden">
+        <div class="page-heading"><div><span class="eyebrow">PERENCANAAN</span><h2>Target Hafalan</h2><p>Atur target pribadi dan tandai juz yang sudah dikuasai.</p></div><button class="primary small" id="addTarget">+ Tambah Target</button></div>
+        <div class="card target-summary"><div><span>Progres keseluruhan</span><strong id="hafalanPercent">0%</strong></div><div class="big-progress"><i id="hafalanBar"></i></div><div><b id="hafalanDone">0</b> / 30 juz selesai</div></div>
+        <div id="targetCards" class="target-cards"></div>
+      </div>
+
+      <div id="murojaah" class="page hidden">
+        <div class="page-heading"><div><span class="eyebrow">PENGULANGAN</span><h2>Murojaah</h2><p>Tandai materi yang sudah kamu murojaah hari ini.</p></div><button class="primary small" id="resetReview">Reset Hari Ini</button></div>
+        <div class="card review-summary"><div class="review-ring large" id="reviewRingLarge">0%</div><div><h3>Jaga hafalanmu 🌿</h3><p id="reviewSummaryText">0 dari 30 juz sudah dimurojaah hari ini.</p><div class="big-progress"><i id="reviewBar"></i></div></div></div>
+        <div id="reviewGrid" class="review-grid"></div>
+      </div>
+
+      <div id="catatan" class="page hidden">
+        <div class="page-heading"><div><span class="eyebrow">JURNAL</span><h2>Catatan Hafalan</h2><p>Simpan catatan pribadi tentang hafalan dan murojaah.</p></div></div>
+        <div class="notes-layout">
+          <div class="card"><h3>Catatan Baru</h3><label>Judul</label><input id="noteTitle" placeholder="Contoh: Murojaah Juz 30"><label>Isi catatan</label><textarea id="noteBody" rows="8" placeholder="Tulis perkembangan, bagian yang masih sulit, atau motivasi untuk diri sendiri..."></textarea><button class="primary" id="saveNote">Simpan Catatan</button></div>
+          <div class="card"><div class="head"><div><h3>Catatan Tersimpan</h3><p>Disimpan di perangkat ini</p></div></div><div id="notesList"></div></div>
+        </div>
+      </div>
+    </section>
+    <footer>Al-Qur'an • Hafalan & Murojaah • Data target tersimpan di browser perangkatmu.</footer>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script src="script.js"></script>
+</body>
+</html>
