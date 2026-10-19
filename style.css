@@ -9,3 +9,19 @@
 .welcome .eyebrow{display:block;font-family:Amiri,serif;font-size:19px;line-height:1.45;letter-spacing:0;margin-bottom:8px;white-space:normal;position:relative;z-index:2}
 .welcome .ornament span{font-size:48px;right:45px;top:28px;opacity:.45;line-height:1}
 @media(max-width:750px){.welcome .eyebrow{font-size:16px}.welcome .ornament{display:none}}
+
+
+/* Splash Screen */
+.splash-screen{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:linear-gradient(145deg,#f7fbf9 0%,#edf6f2 55%,#f5ecd8 100%);opacity:1;visibility:visible;transition:opacity .55s ease,visibility .55s ease}
+.splash-screen.hide{opacity:0;visibility:hidden;pointer-events:none}
+.splash-inner{text-align:center;transform:translateY(0);animation:splashRise .7s ease both}
+.splash-logo{width:82px;height:82px;margin:0 auto 16px;border-radius:24px;display:grid;place-items:center;background:linear-gradient(145deg,#6da58c,#4f806d);color:#fffefa;font-family:Amiri,serif;font-size:48px;line-height:1;box-shadow:0 16px 36px rgba(79,128,109,.24);animation:splashPulse 1.8s ease-in-out infinite}
+.splash-title{font-family:'Plus Jakarta Sans',Inter,sans-serif;font-size:25px;font-weight:800;letter-spacing:-.5px;color:#263d35}
+.splash-subtitle{margin-top:4px;color:#6f827a;font-size:11px;font-weight:600;letter-spacing:.3px}
+.splash-loader{width:118px;height:4px;margin:25px auto 10px;overflow:hidden;border-radius:999px;background:#d9e9e2}
+.splash-loader span{display:block;width:42%;height:100%;border-radius:999px;background:#4f806d;animation:splashLoad 1.05s ease-in-out infinite}
+.splash-loading{font-size:9px;color:#84948e}
+@keyframes splashRise{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes splashPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+@keyframes splashLoad{0%{transform:translateX(-125%)}100%{transform:translateX(285%)}}
+@media(prefers-reduced-motion:reduce){.splash-inner,.splash-logo,.splash-loader span{animation:none}.splash-screen{transition:none}}

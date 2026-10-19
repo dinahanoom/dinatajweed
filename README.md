@@ -55,3 +55,7 @@ Untuk versi produksi, fitur yang bisa ditambahkan:
 Fitur **Murottal** menggunakan edisi `ar.alafasy` dari AlQuran Cloud/CDN dan memutar audio per ayat secara streaming. Audio tidak dibundel ke dalam ZIP sehingga ukuran aplikasi tetap ringan. Pengguna dapat menekan **▶ Murottal** pada setiap ayat dan audio otomatis melanjutkan ke ayat berikutnya dalam juz yang sedang dibuka.
 
 Sumber audio: AlQuran Cloud / Islamic Network. Lihat dokumentasi CDN dan ketentuan penggunaannya sebelum melakukan publikasi komersial.
+
+
+## Adzan Madinah
+Audio adzan yang digunakan oleh fitur Mode Adzan adalah file lokal `audio/adhan-madina.mp3`, menggunakan audio Madinah yang diberikan oleh pengguna. Audio tidak lagi mengambil file adzan dari URL eksternal.

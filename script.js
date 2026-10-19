@@ -1,3 +1,15 @@
+
+// Splash screen: show the branded opening screen briefly, then reveal the app.
+(function(){
+  const splash=document.getElementById('splashScreen');
+  if(!splash) return;
+  const hideSplash=()=>{
+    splash.classList.add('hide');
+    setTimeout(()=>splash.remove(),650);
+  };
+  window.addEventListener('load',()=>setTimeout(hideSplash,700),{once:true});
+  setTimeout(hideSplash,2600);
+})();
 const API='https://api.alquran.cloud/v1';
 const juzNames=[
 'Juz 1','Juz 2','Juz 3','Juz 4','Juz 5','Juz 6','Juz 7','Juz 8','Juz 9','Juz 10',
@@ -206,7 +218,7 @@ function renderPrayer(){
   document.getElementById('adhanEnabled').checked=!!prayerState.enabled;
   document.getElementById('adhanSound').value='marwan'; prayerState.sound='marwan';
 }
-function adhanUrl(){return 'https://www.islamcan.com/audio/adhan/azan1.mp3'}
+function adhanUrl(){return './audio/adhan-madina.mp3'}
 function playAdhan(manual=false){const a=document.getElementById('adhanAudio');a.src=adhanUrl();a.play().then(()=>{if(manual)toast('Adzan diputar.');}).catch(()=>toast('Browser memerlukan interaksi untuk memulai audio.'))}
 function checkPrayerTimes(){
   if(!prayerState.enabled||!prayerState.times)return; const now=new Date(); const hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'); const today=now.toDateString();
