@@ -114,11 +114,27 @@
       </div>
 
       <div id="quran" class="page hidden">
-        <div class="page-heading"><div><span class="eyebrow">MUSHAF DIGITAL</span><h2>Al-Qur'an</h2><p>Pilih juz 1–30 untuk membaca ayat.</p></div><button class="primary small" id="randomAyah">Ayat Acak ✦</button></div>
+        <div class="page-heading"><div><span class="eyebrow">MUSHAF DIGITAL</span><h2>Al-Qur'an</h2><p>Pilih surah untuk membaca per surat, atau tetap gunakan daftar juz 1–30.</p></div><button class="primary small" id="randomAyah">Ayat Acak ✦</button></div>
         <div class="quran-layout">
-          <aside class="juz-panel card"><div class="panel-title">Daftar Juz <span>30</span></div><div id="juzGrid" class="juz-grid"></div></aside>
+          <aside class="juz-panel card">
+            <div class="panel-title">Navigasi Mushaf</div>
+            <div class="reader-tabs" role="tablist" aria-label="Pilih cara membaca">
+              <button class="reader-tab active" id="surahTab" type="button">Per Surah</button>
+              <button class="reader-tab" id="juzTab" type="button">Per Juz</button>
+            </div>
+            <div id="surahChooser" class="surah-chooser">
+              <input id="surahFilter" class="surah-filter" type="search" placeholder="Cari nama surah..." aria-label="Cari surah">
+              <div class="panel-title surah-count-title">Daftar Surah <span>114</span></div>
+              <div id="surahGrid" class="surah-grid"></div>
+            </div>
+            <div id="juzChooser" class="hidden">
+              <div class="panel-title">Daftar Juz <span>30</span></div>
+              <div id="juzGrid" class="juz-grid"></div>
+            </div>
+          </aside>
           <article class="reader card">
-            <div class="reader-head"><div><span id="readerJuz">Juz 1</span><h3 id="readerSurah">Memuat...</h3><select id="reciterSelect" class="reciter-select"><option value="alafasy">Mishary Rashid Alafasy</option><option value="yasser">Yasser Al-Dosari</option><option value="sudais">Abdurrahman As-Sudais</option></select></div><button class="more" id="readerTop">↑ Atas</button></div>
+            <div class="reader-head"><div class="reader-heading-main"><span id="readerJuz">Juz 1</span><h3 id="readerSurah">Memuat...</h3><div class="reader-controls"><select id="reciterSelect" class="reciter-select"><option value="alafasy">Mishary Rashid Alafasy</option><option value="yasser">Yasser Al-Dosari</option><option value="sudais">Abdurrahman As-Sudais</option></select><button class="tiny tafsir-surah-btn" id="tafsirSurahBtn" type="button">📖 Tafsir Surah</button></div></div><button class="more" id="readerTop">↑ Atas</button></div>
+            <div id="tafsirSurahPanel" class="tafsir-surah-panel hidden" aria-live="polite"></div>
             <div id="quranLoading" class="loading">Memuat ayat Al-Qur'an...</div>
             <div id="ayahList" class="ayah-list"></div>
             <div class="audio-player" id="audioPlayer">

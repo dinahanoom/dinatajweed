@@ -113,33 +113,140 @@ document.getElementById('resetReview').onclick=()=>{if(confirm('Reset semua tand
 
 let currentAudioAyah=null;
 let autoNext=true;
+let readerMode='surah';
+let currentSurahNumber=1;
+let currentJuzNumber=1;
+let surahCatalogue=[];
+const tafsirCache={};
+
+function setReaderMode(mode){
+  readerMode=mode;
+  document.getElementById('surahChooser').classList.toggle('hidden',mode!=='surah');
+  document.getElementById('juzChooser').classList.toggle('hidden',mode!=='juz');
+  document.getElementById('surahTab').classList.toggle('active',mode==='surah');
+  document.getElementById('juzTab').classList.toggle('active',mode==='juz');
+  document.getElementById('tafsirSurahBtn').classList.toggle('hidden',mode!=='surah');
+}
+document.getElementById('surahTab').onclick=()=>setReaderMode('surah');
+document.getElementById('juzTab').onclick=()=>setReaderMode('juz');
+
+async function initSurahs(){
+  const grid=document.getElementById('surahGrid');
+  grid.innerHTML='<div class="loading">Memuat daftar surah...</div>';
+  try{
+    const res=await fetch(`${API}/surah`);
+    if(!res.ok) throw new Error('Daftar surah gagal dimuat');
+    const json=await res.json(); surahCatalogue=json.data||[];
+    renderSurahGrid();
+  }catch(e){grid.innerHTML='<p class="surah-list-error">Daftar surah belum dapat dimuat. Periksa koneksi internet.</p>'}
+}
+function renderSurahGrid(filter=''){
+  const grid=document.getElementById('surahGrid');
+  const q=filter.trim().toLowerCase();
+  const items=surahCatalogue.filter(s=>!q||String(s.number).includes(q)||s.name.toLowerCase().includes(q)||s.englishName.toLowerCase().includes(q)||s.englishNameTranslation.toLowerCase().includes(q));
+  grid.innerHTML='';
+  if(!items.length){grid.innerHTML='<p class="surah-list-error">Surah tidak ditemukan.</p>';return}
+  items.forEach(s=>{
+    const item=document.createElement('div');item.className='surah-item';
+    const b=document.createElement('button');b.type='button';b.className='surah-btn'+(readerMode==='surah'&&s.number===currentSurahNumber?' active':'');
+    b.innerHTML=`<span class="surah-number">${s.number}</span><span class="surah-btn-info"><b>${escapeHtml(s.englishName)}</b><small>${s.numberOfAyahs} ayat</small></span><span class="surah-btn-ar" lang="ar" dir="rtl">${escapeHtml(s.name)}</span>`;
+    b.onclick=()=>{setReaderMode('surah');loadSurah(s.number)};
+    const tafsir=document.createElement('button');tafsir.type='button';tafsir.className='surah-list-tafsir';tafsir.textContent='Tafsir';tafsir.title=`Buka tafsir Surah ${s.englishName}`;
+    tafsir.onclick=async()=>{await loadSurah(s.number);document.getElementById('tafsirSurahBtn').click()};
+    item.append(b,tafsir);grid.appendChild(item);
+  });
+}
+document.getElementById('surahFilter').addEventListener('input',e=>renderSurahGrid(e.target.value));
+
+function normalizeAyah(a, fallbackSurah){
+  return {...a,surah:a.surah||fallbackSurah};
+}
+function renderAyahs(ayahs, mode){
+  const list=document.getElementById('ayahList');list.innerHTML='';
+  ayahs.forEach(raw=>{
+    const a=normalizeAyah(raw, raw.surah||null);
+    const row=document.createElement('div');row.className='ayah';row.dataset.globalAyah=a.number;
+    const surahName=a.surah?.name||''; const englishName=a.surah?.englishName||'';
+    row.innerHTML=`<div class="ayah-meta"><span>${escapeHtml(surahName)} • ${escapeHtml(englishName)} • Ayat ${a.numberInSurah}</span><span>Juz ${a.juz}</span></div><div class="ayah-text" lang="ar" dir="rtl">${a.text}</div><div class="surah-name">${escapeHtml(surahName)} — ${escapeHtml(englishName)}</div><div class="ayah-tools"><button class="tiny play-audio" type="button">▶ Murottal</button><button class="tiny tafsir-ayah-btn" type="button">📖 Tafsir Ayat</button><button class="tiny" data-mark="${escapeHtml(englishName)}|${a.numberInSurah}" type="button">☆ Tandai</button><button class="tiny" data-read="${escapeHtml(englishName)}|${a.numberInSurah}" type="button">Simpan posisi</button></div><div class="tafsir-ayah-panel hidden" aria-live="polite"></div>`;
+    row.querySelector('.play-audio').onclick=()=>playAyah(a,row,ayahs.map(x=>normalizeAyah(x,x.surah||a.surah)));
+    row.querySelector('.tafsir-ayah-btn').onclick=()=>toggleAyahTafsir(a,row);
+    row.querySelector('[data-read]').onclick=()=>{state.lastRead={surah:englishName,ayah:a.numberInSurah};save();toast('Posisi bacaan disimpan.');};
+    row.querySelector('[data-mark]').onclick=()=>{state.lastRead={surah:englishName,ayah:a.numberInSurah};save();toast('Ayat ditandai sebagai posisi bacaan.');};
+    list.appendChild(row);
+  });
+  document.getElementById('quranLoading').classList.add('hidden');
+}
+
+async function loadSurah(number){
+  currentSurahNumber=Number(number);setReaderMode('surah');
+  document.getElementById('readerJuz').textContent='Surah ke-'+number;
+  document.getElementById('quranLoading').textContent='Memuat ayat Al-Qur\'an...';
+  document.getElementById('quranLoading').classList.remove('hidden');
+  document.getElementById('ayahList').innerHTML='';document.getElementById('tafsirSurahPanel').classList.add('hidden');hideAudio();
+  try{
+    const res=await fetch(`${API}/surah/${number}/quran-uthmani`);if(!res.ok)throw new Error('Gagal memuat surah');
+    const json=await res.json(), data=json.data;
+    document.getElementById('readerSurah').textContent=`${data.englishName} — ${data.name}`;
+    document.getElementById('readerJuz').textContent=`Surah ${data.number} • ${data.numberOfAyahs} ayat`;
+    renderAyahs(data.ayahs.map(a=>normalizeAyah(a,data)), 'surah');
+    document.querySelectorAll('.surah-btn').forEach(b=>b.classList.toggle('active',Number(b.querySelector('.surah-number')?.textContent)===currentSurahNumber));
+    document.querySelectorAll('.juz-btn').forEach(b=>b.classList.remove('active'));
+  }catch(e){document.getElementById('quranLoading').textContent='Tidak dapat memuat surah. Pastikan perangkat terhubung ke internet, lalu coba lagi.';}
+}
 
 async function loadJuz(juz){
+  currentJuzNumber=Number(juz);setReaderMode('juz');
   document.getElementById('readerJuz').textContent='Juz '+juz;
+  document.getElementById('quranLoading').textContent='Memuat ayat Al-Qur\'an...';
   document.getElementById('quranLoading').classList.remove('hidden');
-  document.getElementById('ayahList').innerHTML='';
-  hideAudio();
+  document.getElementById('ayahList').innerHTML='';document.getElementById('tafsirSurahPanel').classList.add('hidden');hideAudio();
   try{
-    const res=await fetch(`${API}/juz/${juz}/quran-uthmani`);
-    if(!res.ok) throw new Error('Gagal');
+    const res=await fetch(`${API}/juz/${juz}/quran-uthmani`);if(!res.ok)throw new Error('Gagal');
     const json=await res.json(), ayahs=json.data.ayahs;
     const surahs=[...new Map(ayahs.map(a=>[a.surah.number,a.surah])).values()];
     document.getElementById('readerSurah').textContent=surahs.map(s=>`${s.name} (${s.englishName})`).join(' • ');
-    const list=document.getElementById('ayahList');
-    ayahs.forEach(a=>{
-      const row=document.createElement('div');row.className='ayah';row.dataset.globalAyah=a.number;
-      row.innerHTML=`<div class="ayah-meta"><span>${a.surah.name} • ${a.surah.englishName} • Ayat ${a.numberInSurah}</span><span>Juz ${a.juz}</span></div><div class="ayah-text">${a.text}</div><div class="surah-name">${a.surah.name} — ${a.surah.englishName}</div><div class="ayah-tools"><button class="tiny play-audio">▶ Murottal</button><button class="tiny" data-mark="${a.surah.englishName}|${a.numberInSurah}">☆ Tandai</button><button class="tiny" data-read="${a.surah.englishName}|${a.numberInSurah}">Simpan posisi</button></div>`;
-      row.querySelector('.play-audio').onclick=()=>playAyah(a,row,ayahs);
-      row.querySelector('[data-read]').onclick=()=>{state.lastRead={surah:a.surah.englishName,ayah:a.numberInSurah};save();toast('Posisi bacaan disimpan.');};
-      row.querySelector('[data-mark]').onclick=()=>{state.lastRead={surah:a.surah.englishName,ayah:a.numberInSurah};save();toast('Ayat ditandai sebagai posisi bacaan.');};
-      list.appendChild(row);
-    });
-    document.getElementById('quranLoading').classList.add('hidden');
-    document.querySelectorAll('.juz-btn').forEach(b=>b.classList.toggle('active',+b.dataset.juz===juz));
-  }catch(e){
-    document.getElementById('quranLoading').textContent='Tidak dapat memuat Al-Qur’an. Pastikan perangkat terhubung ke internet, lalu coba lagi.';
-  }
+    renderAyahs(ayahs,'juz');
+    document.querySelectorAll('.juz-btn').forEach(b=>b.classList.toggle('active',+b.dataset.juz===Number(juz)));
+    document.querySelectorAll('.surah-btn').forEach(b=>b.classList.remove('active'));
+  }catch(e){document.getElementById('quranLoading').textContent='Tidak dapat memuat Al-Qur’an. Pastikan perangkat terhubung ke internet, lalu coba lagi.';}
 }
+
+async function getSurahTafsir(number){
+  if(tafsirCache[number])return tafsirCache[number];
+  const res=await fetch(`https://equran.id/api/v2/tafsir/${number}`);
+  if(!res.ok)throw new Error('Tafsir belum tersedia');
+  const json=await res.json();
+  const data=json.data;
+  if(!data||!Array.isArray(data.tafsir))throw new Error('Format tafsir tidak dikenali');
+  tafsirCache[number]=data;return data;
+}
+function showTafsirText(container, title, text){
+  container.innerHTML='';
+  const heading=document.createElement('b');heading.className='tafsir-title';heading.textContent=title;
+  const paragraph=document.createElement('p');paragraph.textContent=text||'Tafsir untuk ayat ini belum tersedia.';
+  container.append(heading,paragraph);container.classList.remove('hidden');
+}
+async function toggleAyahTafsir(a,row){
+  const panel=row.querySelector('.tafsir-ayah-panel');
+  if(!panel.classList.contains('hidden')){panel.classList.add('hidden');return}
+  panel.classList.remove('hidden');panel.innerHTML='<span class="tafsir-loading">Memuat tafsir ayat...</span>';
+  try{
+    const number=a.surah.number;const data=await getSurahTafsir(number);
+    const tafsir=data.tafsir.find(t=>Number(t.ayat)===Number(a.numberInSurah));
+    showTafsirText(panel,`Tafsir ${data.namaLatin||a.surah.englishName} · Ayat ${a.numberInSurah}`,tafsir?.teks||'Tafsir untuk ayat ini belum tersedia.');
+  }catch(e){panel.innerHTML='<p class="tafsir-error">Tafsir belum dapat dimuat. Periksa koneksi internet lalu coba lagi.</p>'}
+}
+document.getElementById('tafsirSurahBtn').onclick=async()=>{
+  const panel=document.getElementById('tafsirSurahPanel');
+  if(!panel.classList.contains('hidden')){panel.classList.add('hidden');return}
+  panel.classList.remove('hidden');panel.innerHTML='<div class="tafsir-loading">Memuat tafsir surah...</div>';
+  try{
+    const data=await getSurahTafsir(currentSurahNumber);panel.innerHTML='';
+    const heading=document.createElement('h4');heading.textContent=`Tafsir Surah ${data.namaLatin||data.nama||''}`;panel.appendChild(heading);
+    const intro=document.createElement('p');intro.className='tafsir-intro';intro.textContent=data.arti?`Arti: ${data.arti}`:'Penjelasan tafsir per ayat';panel.appendChild(intro);
+    data.tafsir.forEach(t=>{const item=document.createElement('div');item.className='tafsir-surah-item';const h=document.createElement('b');h.textContent=`Ayat ${t.ayat}`;const p=document.createElement('p');p.textContent=t.teks||'';item.append(h,p);panel.appendChild(item)});
+  }catch(e){panel.innerHTML='<p class="tafsir-error">Tafsir surah belum dapat dimuat. Periksa koneksi internet lalu coba lagi.</p>'}
+};
 
 function audioUrl(a){
   const r=reciters[document.getElementById('reciterSelect')?.value||'alafasy'];
@@ -172,7 +279,7 @@ function initJuz(){
   for(let i=1;i<=30;i++){const b=document.createElement('button');b.className='juz-btn';b.dataset.juz=i;b.textContent='Juz '+i;b.onclick=()=>loadJuz(i);grid.appendChild(b)}
 }
 document.getElementById('randomAyah').onclick=async()=>{
-  try{const r=await fetch(`${API}/ayah/random/quran-uthmani`),j=await r.json();loadJuz(j.data.juz);toast(`Membuka Juz ${j.data.juz}, ${j.data.surah.englishName} ayat ${j.data.numberInSurah}.`)}
+  try{const r=await fetch(`${API}/ayah/random/quran-uthmani`),j=await r.json();loadSurah(j.data.surah.number);toast(`Membuka Surah ${j.data.surah.englishName} ayat ${j.data.numberInSurah}.`)}
   catch(e){toast('Ayat acak belum bisa dimuat.')}
 };
 
@@ -191,7 +298,12 @@ document.getElementById('search').addEventListener('input',e=>{
   if(!q)return;
   show('quran');
   const num=parseInt(q.replace(/\D/g,''),10);
-  if(num>=1&&num<=30){loadJuz(num)}
+  if(/^juz\s*\d+$/i.test(q)&&num>=1&&num<=30){loadJuz(num);return;}
+  if(surahCatalogue.length){
+    document.getElementById('surahFilter').value=q;renderSurahGrid(q);setReaderMode('surah');
+    const exact=surahCatalogue.find(s=>s.englishName.toLowerCase()===q||s.name.toLowerCase()===q||String(s.number)===q);
+    if(exact)loadSurah(exact.number);
+  }
 });
 document.getElementById('readerTop').onclick=()=>document.getElementById('quran').scrollIntoView({behavior:'smooth'});
 
@@ -231,4 +343,4 @@ document.getElementById('refreshPrayer').onclick=loadPrayerTimes;
 document.getElementById('reciterSelect').onchange=()=>toast('Qari diganti ke '+reciters[document.getElementById('reciterSelect').value].name+'.');
 loadPrayerTimes(); setInterval(checkPrayerTimes,30000); setTimeout(checkPrayerTimes,1000);
 
-initJuz(); updateAll(); renderToday(); renderTargets(); renderReviews(); renderNotes(); loadJuz(1);
+initJuz(); initSurahs(); setReaderMode('surah'); updateAll(); renderToday(); renderTargets(); renderReviews(); renderNotes(); loadSurah(1);

@@ -25,3 +25,34 @@
 @keyframes splashPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
 @keyframes splashLoad{0%{transform:translateX(-125%)}100%{transform:translateX(285%)}}
 @media(prefers-reduced-motion:reduce){.splash-inner,.splash-logo,.splash-loader span{animation:none}.splash-screen{transition:none}}
+
+/* Emerald & gold redesign: clean solid backgrounds, no image textures */
+:root{--bg:#f7f8f2;--surface:#ffffff;--ink:#24352d;--muted:#748178;--green:#145a43;--green2:#237456;--mint:#e6efe8;--cream:#f5edda;--gold:#c6a45c;--line:#e4e8df;--shadow:0 12px 32px rgba(20,65,47,.07)}
+body.dark{--bg:#101d18;--surface:#192a22;--ink:#edf4ee;--muted:#a8b7ac;--mint:#243f32;--cream:#3b3526;--line:#314338;--green:#4d9b77;--green2:#6eb58e;--gold:#d8bb78}
+.brand-mark,.primary,.play{background:var(--green)}
+.nav:hover,.nav.active{background:var(--mint);color:var(--green)}
+.welcome{background:#145a43;color:#fff;border:1px solid #c6a45c;position:relative}
+.welcome:after{content:"۞";position:absolute;right:30px;bottom:-35px;color:#d8bb78;font:130px Amiri,serif;opacity:.12;pointer-events:none}
+.welcome .eyebrow{color:#e4c77e}.welcome h2,.welcome h2 b{color:#fff}.welcome p{color:#e1ebe3}.welcome .primary{background:#c6a45c;color:#173b2c}.ornament{color:#d8bb78}
+.sidebar-quote{background:#f5edda;color:#725b2b}.icon.gold{background:#f5edda;color:#876a2c}
+.prayer-time span{color:var(--green)}
+.reader-tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:4px;background:var(--bg);border:1px solid var(--line);border-radius:11px;margin-bottom:13px}
+.reader-tab{border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:10px;font-weight:800;padding:10px 7px;cursor:pointer}
+.reader-tab.active{background:var(--green);color:#fff;box-shadow:0 3px 9px #145a4322}
+.surah-filter{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:10px 11px;font:500 10px Inter,Arial,sans-serif;outline:none;margin-bottom:13px}
+.surah-filter:focus{border-color:var(--gold);box-shadow:0 0 0 3px #c6a45c22}
+.surah-count-title{margin:1px 0 10px}.surah-grid{display:grid;grid-template-columns:1fr;gap:6px;max-height:590px;overflow:auto;padding-right:3px}
+.surah-btn{display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:8px;width:100%;padding:9px 8px;text-align:left;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);cursor:pointer;transition:border-color .15s,background .15s}
+.surah-btn:hover,.surah-btn.active{background:var(--mint);border-color:var(--gold)}
+.surah-number{width:27px;height:27px;display:grid;place-items:center;border-radius:8px;background:#f5edda;color:#80652b;font-size:10px;font-weight:800}
+.surah-btn-info{min-width:0}.surah-btn-info b{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.surah-btn-info small{display:block;font-size:8px;color:var(--muted);margin-top:3px}.surah-btn-ar{font:19px Amiri,serif;color:var(--green);max-width:75px;overflow:hidden;white-space:nowrap}
+.surah-list-error{font-size:10px;color:var(--muted);line-height:1.6;padding:10px}
+.reader-head{gap:12px;align-items:flex-start}.reader-heading-main{min-width:0;flex:1}.reader-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:5px}.reader-controls .reciter-select{margin-top:0}.tafsir-surah-btn{border-color:#d8c18b;background:#fbf7ec;color:#785f2a;font-weight:800;padding:8px 10px}
+.ayah{padding:19px 8px}.ayah-text{color:var(--ink);line-height:2.15}.ayah-tools{flex-wrap:wrap}.ayah-tools .tafsir-ayah-btn{border-color:#d8c18b;background:#fbf7ec;color:#785f2a;font-weight:800}.ayah-tools button:hover,.tiny:hover{border-color:var(--gold);color:var(--green)}
+.tafsir-surah-panel,.tafsir-ayah-panel{margin-top:12px;padding:15px;border:1px solid #e5d6af;border-radius:12px;background:#fcf9f0;color:#463d2b;line-height:1.8;font-size:12px}
+.tafsir-surah-panel h4{font:800 14px 'Plus Jakarta Sans',Inter,sans-serif;margin:0 0 5px;color:#145a43}.tafsir-intro{font-size:10px;color:#7b6b49;margin:0 0 12px}.tafsir-surah-item{padding:12px 0;border-top:1px solid #e9dfc7}.tafsir-surah-item b,.tafsir-title{display:block;color:#145a43;font-size:11px;margin-bottom:5px}.tafsir-surah-item p,.tafsir-ayah-panel p{margin:0;white-space:pre-line;font-size:11px;line-height:1.8}.tafsir-loading{display:block;color:#7b6b49;font-size:10px}.tafsir-error{margin:0;color:#855b39;font-size:10px;line-height:1.7}
+.splash-screen{background:#145a43}.splash-logo{background:#c6a45c;color:#145a43;box-shadow:0 16px 36px rgba(0,0,0,.18)}.splash-title{color:#fff}.splash-subtitle,.splash-loading{color:#e5e9dc}.splash-loader{background:#3a725b}.splash-loader span{background:#d8bb78}
+@media(max-width:750px){.surah-grid{max-height:340px;grid-template-columns:1fr 1fr;gap:6px}.surah-btn{grid-template-columns:26px minmax(0,1fr);padding:8px 6px}.surah-btn-ar{display:none}.reader-head{gap:8px}.reader-controls{align-items:flex-start}.reader-controls .reciter-select{max-width:100%;font-size:9px}.tafsir-surah-panel,.tafsir-ayah-panel{padding:12px}}
+@media(max-width:480px){.surah-grid{grid-template-columns:1fr 1fr}.surah-btn-info b{font-size:9px}.reader-controls{display:grid;grid-template-columns:1fr}.reader-controls .reciter-select{width:100%}.tafsir-surah-btn{justify-self:start}}
+.surah-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;align-items:stretch}.surah-item .surah-btn{min-width:0}.surah-list-tafsir{border:1px solid #d8c18b;border-radius:9px;padding:0 8px;background:#fbf7ec;color:#785f2a;font-size:9px;font-weight:800;cursor:pointer}.surah-list-tafsir:hover{background:#f5edda;border-color:var(--gold)}
+@media(max-width:750px){.surah-item{gap:4px}.surah-list-tafsir{padding:0 6px;font-size:8px}}
