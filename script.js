@@ -30,15 +30,30 @@ function show(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
   document.getElementById(page).classList.remove('hidden');
   document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
-  const label={home:'Beranda',quran:"Al-Qur'an",hafalan:'Target Hafalan',murojaah:'Murojaah',catatan:'Catatan'}[page];
+  const label={home:'Beranda',quran:"Al-Qur'an",hafalan:'Target Hafalan',murojaah:'Murojaah',catatan:'Catatan',kiblat:'Cari Kiblat'}[page];
   document.getElementById('crumb').textContent=label;
   document.getElementById('title').textContent=page==='home'?"Assalamu'alaikum 🌙":label;
+  // Tutup sidebar mobile setelah pilih menu (fix dead-end)
+  const sb=document.getElementById('sidebar');
+  if(sb) sb.classList.remove('open');
+  const ov=document.getElementById('sidebarOverlay');
+  if(ov) ov.classList.remove('show');
   if(page==='hafalan') renderTargets();
   if(page==='murojaah') renderReviews();
   if(page==='catatan') renderNotes();
+  if(page==='kiblat') initKiblat();
 }
 document.querySelectorAll('.nav,[data-go]').forEach(el=>el.addEventListener('click',()=>show(el.dataset.page||el.dataset.go)));
-document.getElementById('menu').onclick=()=>document.getElementById('sidebar').classList.toggle('open');
+document.getElementById('menu').onclick=()=>{
+  const sb=document.getElementById('sidebar');
+  const ov=document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  if(ov) ov.classList.toggle('show', sb.classList.contains('open'));
+};
+document.getElementById('sidebarOverlay')?.addEventListener('click',()=>{
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+});
 document.getElementById('theme').onclick=()=>document.body.classList.toggle('dark');
 
 function updateAll(){
@@ -344,3 +359,276 @@ document.getElementById('reciterSelect').onchange=()=>toast('Qari diganti ke '+r
 loadPrayerTimes(); setInterval(checkPrayerTimes,30000); setTimeout(checkPrayerTimes,1000);
 
 initJuz(); initSurahs(); setReaderMode('surah'); updateAll(); renderToday(); renderTargets(); renderReviews(); renderNotes(); loadSurah(1);
+
+
+
+/* ===== CARI KIBLAT (kompas responsif + mode laptop drag) ===== */
+const KAABA = { lat: 21.422487, lng: 39.826206 };
+let kiblatWatchId = null;
+let kiblatOrientationHandler = null;
+let currentHeading = 0;
+let qiblaBearing = 0;
+let userLat = null, userLng = null;
+let smoothedHeading = 0;
+let lastOrientTs = 0;
+let hasRealCompass = false;
+let dragActive = false;
+let dragStartAngle = 0;
+let dragStartHeading = 0;
+
+function toRad(d){ return d * Math.PI / 180; }
+function toDeg(r){ return r * 180 / Math.PI; }
+
+function calculateQibla(lat, lng){
+  const φ1 = toRad(lat), φ2 = toRad(KAABA.lat);
+  const Δλ = toRad(KAABA.lng - lng);
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x = Math.cos(φ1)*Math.sin(φ2) - Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
+  let θ = toDeg(Math.atan2(y, x));
+  return (θ + 360) % 360;
+}
+
+function angleDiff(a, b){
+  return (b - a + 540) % 360 - 180;
+}
+
+function setHeading(h){
+  currentHeading = ((h % 360) + 360) % 360;
+  smoothedHeading = currentHeading;
+  updateKiblatUI();
+  const slider = document.getElementById('kiblatSlider');
+  if(slider && document.activeElement !== slider) slider.value = Math.round(currentHeading);
+}
+
+function updateKiblatUI(){
+  const needle = document.getElementById('kiblatNeedle');
+  const compass = document.getElementById('kiblatCompass');
+  const degEl = document.getElementById('kiblatDegree');
+  const dirEl = document.getElementById('kiblatDirection');
+  const liveEl = document.getElementById('kiblatLiveHeading');
+  if(!needle) return;
+
+  const relative = (qiblaBearing - smoothedHeading + 360) % 360;
+  needle.style.transform = `rotate(${relative}deg)`;
+  if(compass) compass.style.transform = `rotate(${-smoothedHeading}deg)`;
+
+  if(degEl) degEl.textContent = Math.round(qiblaBearing) + '°';
+  const dirs = ['Utara','Timur Laut','Timur','Tenggara','Selatan','Barat Daya','Barat','Barat Laut'];
+  const idx = Math.round(((qiblaBearing % 360) + 360) % 360 / 45) % 8;
+  if(dirEl) dirEl.textContent = dirs[idx];
+  if(liveEl) liveEl.textContent = Math.round(smoothedHeading) + '°';
+}
+
+function handleDeviceOrientation(e){
+  let heading = null;
+  if(typeof e.webkitCompassHeading === 'number' && !isNaN(e.webkitCompassHeading)){
+    heading = e.webkitCompassHeading;
+  } else if(e.absolute === true && typeof e.alpha === 'number'){
+    heading = (360 - e.alpha) % 360;
+  } else if(typeof e.alpha === 'number'){
+    heading = (360 - e.alpha) % 360;
+  }
+  if(heading == null || isNaN(heading)) return;
+
+  hasRealCompass = true;
+  const now = performance.now();
+  const dt = Math.min(100, now - (lastOrientTs || now));
+  lastOrientTs = now;
+  const alpha = Math.min(0.35, dt / 40);
+  const delta = angleDiff(smoothedHeading, heading);
+  smoothedHeading = (smoothedHeading + delta * (0.45 + alpha * 0.4) + 360) % 360;
+  currentHeading = heading;
+  updateKiblatUI();
+
+  const status = document.getElementById('kiblatStatus');
+  if(status && status.dataset.mode !== 'ok'){
+    status.dataset.mode = 'ok';
+    status.textContent = 'Kompas sensor aktif — putar HP, jarum mengikuti';
+  }
+  // Sembunyikan kontrol manual kalau sensor beneran ada
+  const manual = document.getElementById('kiblatManual');
+  if(manual) manual.classList.add('hidden');
+}
+
+function startOrientation(){
+  const status = document.getElementById('kiblatStatus');
+  stopOrientationOnly();
+  kiblatOrientationHandler = handleDeviceOrientation;
+
+  function attach(){
+    window.addEventListener('deviceorientationabsolute', handleDeviceOrientation, true);
+    window.addEventListener('deviceorientation', handleDeviceOrientation, true);
+  }
+
+  if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
+    DeviceOrientationEvent.requestPermission()
+      .then(state=>{
+        if(state === 'granted'){
+          attach();
+          if(status) status.textContent = 'Kompas aktif — putar HP';
+        } else {
+          enableManualMode('Izin sensor ditolak. Pakai mode manual (geser / slider) di bawah.');
+        }
+      })
+      .catch(()=> enableManualMode('Gagal minta izin. Pakai mode manual di bawah.'));
+  } else if(window.DeviceOrientationEvent){
+    attach();
+    // Setelah 1.5 detik kalau belum dapat event → laptop / tidak ada sensor
+    setTimeout(()=>{
+      if(!hasRealCompass) enableManualMode('Tidak terdeteksi sensor kompas (laptop?). Geser kompas atau pakai slider untuk memutar.');
+    }, 1500);
+  } else {
+    enableManualMode('Perangkat tidak mendukung sensor. Geser kompas atau pakai slider.');
+  }
+}
+
+function enableManualMode(msg){
+  const status = document.getElementById('kiblatStatus');
+  const manual = document.getElementById('kiblatManual');
+  if(status){
+    status.dataset.mode = 'manual';
+    status.textContent = msg || 'Mode manual: geser kompas atau geser slider.';
+  }
+  if(manual) manual.classList.remove('hidden');
+  setupDragAndSlider();
+}
+
+function stopOrientationOnly(){
+  if(kiblatOrientationHandler){
+    window.removeEventListener('deviceorientationabsolute', kiblatOrientationHandler, true);
+    window.removeEventListener('deviceorientation', kiblatOrientationHandler, true);
+    kiblatOrientationHandler = null;
+  }
+}
+
+function stopKiblat(){
+  stopOrientationOnly();
+  if(kiblatWatchId != null && navigator.geolocation){
+    navigator.geolocation.clearWatch(kiblatWatchId);
+    kiblatWatchId = null;
+  }
+  hasRealCompass = false;
+}
+
+function getAngleFromEvent(e, el){
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  const dx = clientX - cx;
+  const dy = clientY - cy;
+  // 0 = atas (utara visual), naik searah jarum jam
+  let ang = Math.atan2(dx, -dy) * 180 / Math.PI;
+  return (ang + 360) % 360;
+}
+
+function setupDragAndSlider(){
+  const wrap = document.getElementById('kiblatCompassWrap') || document.querySelector('.kiblat-compass-wrap');
+  const slider = document.getElementById('kiblatSlider');
+  if(!wrap || wrap.dataset.dragReady) return;
+  wrap.dataset.dragReady = '1';
+  wrap.style.cursor = 'grab';
+
+  function onStart(e){
+    if(hasRealCompass) return;
+    e.preventDefault();
+    dragActive = true;
+    wrap.style.cursor = 'grabbing';
+    dragStartAngle = getAngleFromEvent(e, wrap);
+    dragStartHeading = currentHeading;
+  }
+  function onMove(e){
+    if(!dragActive || hasRealCompass) return;
+    e.preventDefault();
+    const ang = getAngleFromEvent(e, wrap);
+    const delta = angleDiff(dragStartAngle, ang);
+    // Geser jarum jari = putar heading berlawanan (biar terasa natural)
+    setHeading(dragStartHeading - delta);
+  }
+  function onEnd(){
+    dragActive = false;
+    if(wrap) wrap.style.cursor = 'grab';
+  }
+
+  wrap.addEventListener('mousedown', onStart);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onEnd);
+  wrap.addEventListener('touchstart', onStart, {passive:false});
+  window.addEventListener('touchmove', onMove, {passive:false});
+  window.addEventListener('touchend', onEnd);
+
+  if(slider && !slider.dataset.ready){
+    slider.dataset.ready = '1';
+    slider.addEventListener('input', ()=>{
+      if(hasRealCompass) return;
+      setHeading(Number(slider.value));
+    });
+  }
+}
+
+function initKiblat(){
+  const status = document.getElementById('kiblatStatus');
+  const locEl = document.getElementById('kiblatLocation');
+  if(!status) return;
+
+  status.dataset.mode = '';
+  status.textContent = 'Mencari lokasi GPS...';
+  stopKiblat();
+  smoothedHeading = 0;
+  currentHeading = 0;
+  updateKiblatUI();
+
+  // Setup drag lebih awal supaya langsung bisa diputar di laptop
+  setupDragAndSlider();
+
+  if(!navigator.geolocation){
+    // Fallback lokasi default (Jakarta) supaya bearing tetap ada
+    userLat = -6.2088; userLng = 106.8456;
+    qiblaBearing = calculateQibla(userLat, userLng);
+    if(locEl) locEl.textContent = 'Default: Jakarta (izinkan GPS di HP)';
+    const bearingEl = document.getElementById('kiblatBearing');
+    if(bearingEl) bearingEl.textContent = Math.round(qiblaBearing) + '° dari Utara';
+    updateKiblatUI();
+    enableManualMode('GPS tidak tersedia. Mode manual aktif — geser kompas atau slider.');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      qiblaBearing = calculateQibla(userLat, userLng);
+      if(locEl) locEl.textContent = userLat.toFixed(5) + ', ' + userLng.toFixed(5);
+      const bearingEl = document.getElementById('kiblatBearing');
+      if(bearingEl) bearingEl.textContent = Math.round(qiblaBearing) + '° dari Utara';
+      updateKiblatUI();
+      startOrientation();
+      kiblatWatchId = navigator.geolocation.watchPosition(p=>{
+        userLat = p.coords.latitude;
+        userLng = p.coords.longitude;
+        qiblaBearing = calculateQibla(userLat, userLng);
+        if(bearingEl) bearingEl.textContent = Math.round(qiblaBearing) + '° dari Utara';
+        if(locEl) locEl.textContent = userLat.toFixed(5) + ', ' + userLng.toFixed(5);
+        updateKiblatUI();
+      }, null, { enableHighAccuracy: true, maximumAge: 8000, timeout: 15000 });
+    },
+    err=>{
+      // Tetap kasih bearing dari lokasi default biar jarum ada arti
+      userLat = -6.2088; userLng = 106.8456;
+      qiblaBearing = calculateQibla(userLat, userLng);
+      if(locEl) locEl.textContent = 'Perkiraan: Jakarta (izinkan lokasi untuk akurat)';
+      const bearingEl = document.getElementById('kiblatBearing');
+      if(bearingEl) bearingEl.textContent = Math.round(qiblaBearing) + '° dari Utara';
+      updateKiblatUI();
+      let msg = 'Lokasi ditolak/gagal. ';
+      if(err.code === 1) msg += 'Izinkan lokasi di browser. ';
+      msg += 'Mode manual aktif — geser kompas atau slider.';
+      enableManualMode(msg);
+      startOrientation(); // tetap coba sensor
+    },
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+  );
+}
+
+document.getElementById('startKiblat')?.addEventListener('click', initKiblat);

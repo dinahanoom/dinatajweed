@@ -56,3 +56,99 @@ body.dark{--bg:#101d18;--surface:#192a22;--ink:#edf4ee;--muted:#a8b7ac;--mint:#2
 @media(max-width:480px){.surah-grid{grid-template-columns:1fr 1fr}.surah-btn-info b{font-size:9px}.reader-controls{display:grid;grid-template-columns:1fr}.reader-controls .reciter-select{width:100%}.tafsir-surah-btn{justify-self:start}}
 .surah-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;align-items:stretch}.surah-item .surah-btn{min-width:0}.surah-list-tafsir{border:1px solid #d8c18b;border-radius:9px;padding:0 8px;background:#fbf7ec;color:#785f2a;font-size:9px;font-weight:800;cursor:pointer}.surah-list-tafsir:hover{background:#f5edda;border-color:var(--gold)}
 @media(max-width:750px){.surah-item{gap:4px}.surah-list-tafsir{padding:0 6px;font-size:8px}}
+
+
+/* ===== FIX MOBILE SIDEBAR & OVERLAY ===== */
+.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:15;opacity:0;visibility:hidden;transition:.25s;pointer-events:none}
+.sidebar-overlay.show{opacity:1;visibility:visible;pointer-events:auto}
+@media(max-width:750px){
+  .sidebar{transform:translateX(-105%);transition:transform .28s ease;box-shadow:none;z-index:25}
+  .sidebar.open{transform:translateX(0);box-shadow:12px 0 40px rgba(0,0,0,.25)}
+  main{margin-left:0!important;width:100%!important}
+  .menu{display:flex!important;align-items:center;justify-content:center}
+  .topbar{padding:0 14px;height:68px}
+  .topbar>div:first-of-type{display:block!important;min-width:0;flex:1;overflow:hidden}
+  .topbar .crumb{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .topbar h1{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .content{padding:16px 12px}
+  .welcome{padding:22px 18px;min-height:auto}
+  .welcome h2{font-size:22px;line-height:1.25;word-break:break-word}
+  .welcome p{font-size:13px;line-height:1.5}
+  .welcome .eyebrow{font-size:14px}
+  .stats{grid-template-columns:1fr 1fr;gap:10px}
+  .stats article{padding:14px 12px}
+  .stats strong{font-size:18px}
+  .stats span,.stats small{font-size:11px}
+  .two{grid-template-columns:1fr;gap:12px}
+  .prayer-head{flex-direction:column;gap:10px;align-items:stretch}
+  .prayer-times{grid-template-columns:repeat(2,1fr);gap:8px}
+  .prayer-times>div{padding:10px 8px;font-size:12px}
+  .prayer-times strong{font-size:15px}
+  #prayerLocation{font-size:12px;line-height:1.4;word-break:break-word}
+  .page-heading{flex-direction:column;align-items:flex-start;gap:10px}
+  .page-heading h2{font-size:20px}
+  .reader-head{flex-direction:column;gap:10px}
+  .ayah{padding:14px 10px}
+  .ayah-text{font-size:26px!important;line-height:1.9!important;word-break:break-word}
+  .surah-btn-info b{font-size:11px}
+  .surah-btn-ar{font-size:16px;max-width:60px}
+  .card{overflow:hidden}
+  .quran-layout{grid-template-columns:1fr}
+  .juz-panel{order:2}
+  .reader{order:1}
+  .audio-player{flex-wrap:wrap;gap:8px}
+  .search{display:none}
+}
+
+/* Prevent text stacking / overflow globally */
+.ayah-text,.surah-btn-ar,.welcome .eyebrow,h2,h3{overflow-wrap:anywhere;word-break:break-word}
+.brand span,.crumb,b,strong{overflow:hidden;text-overflow:ellipsis}
+.sidebar nav button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ===== KIBLAT STYLES ===== */
+.kiblat-card{text-align:center;padding:24px 16px}
+.kiblat-status{font-size:13px;color:var(--muted);margin-bottom:18px;min-height:20px}
+.kiblat-compass-wrap{position:relative;width:260px;height:260px;margin:0 auto 22px}
+.kiblat-compass{width:100%;height:100%;border-radius:50%;border:3px solid var(--green);background:radial-gradient(circle at center,var(--mint),var(--surface));position:relative;transition:transform .15s linear;box-shadow:inset 0 0 30px rgba(0,0,0,.06)}
+.kiblat-mark{position:absolute;font-weight:800;font-size:14px;color:var(--green)}
+.kiblat-mark.n{top:10px;left:50%;transform:translateX(-50%)}
+.kiblat-mark.e{right:12px;top:50%;transform:translateY(-50%)}
+.kiblat-mark.s{bottom:10px;left:50%;transform:translateX(-50%)}
+.kiblat-mark.w{left:12px;top:50%;transform:translateY(-50%)}
+.kiblat-kaaba{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;opacity:.85;pointer-events:none}
+.kiblat-needle{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;transition:transform .12s linear}
+.needle-arrow{position:absolute;top:18px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:90px solid #c0392b;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
+.needle-arrow:after{content:"";position:absolute;top:90px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:70px solid #7f8c8d}
+.kiblat-info{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;text-align:left}
+.kiblat-info>div{background:var(--mint);border-radius:12px;padding:12px 14px}
+.kiblat-info span{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
+.kiblat-info strong{font-size:16px;color:var(--ink)}
+.kiblat-hint{font-size:12px;color:var(--muted);line-height:1.5;margin:0;padding:0 8px}
+@media(max-width:400px){
+  .kiblat-compass-wrap{width:220px;height:220px}
+  .needle-arrow{border-bottom-width:75px}
+  .needle-arrow:after{top:75px;border-top-width:55px}
+}
+body.dark .kiblat-compass{border-color:var(--green2);background:radial-gradient(circle at center,#1e332c,var(--surface))}
+body.dark .kiblat-info>div{background:var(--mint)}
+
+/* Kiblat live improvements */
+.kiblat-needle{transition:transform 0.08s linear}
+.kiblat-compass{transition:transform 0.08s linear}
+.kiblat-info{grid-template-columns:1fr 1fr}
+.kiblat-info .kiblat-loc-full{grid-column:1 / -1}
+.kiblat-info strong#kiblatLiveHeading{color:var(--green);font-variant-numeric:tabular-nums}
+@media(max-width:400px){
+  .kiblat-info{gap:8px}
+  .kiblat-info>div{padding:10px 12px}
+  .kiblat-info strong{font-size:14px}
+}
+
+/* Mode manual laptop */
+.kiblat-manual{margin:16px 0 8px;padding:14px;background:var(--mint);border-radius:12px;text-align:left}
+.kiblat-manual.hidden{display:none}
+.kiblat-manual label{display:block;font-size:12px;font-weight:700;margin-bottom:8px;color:var(--ink)}
+.kiblat-manual input[type=range]{width:100%;accent-color:var(--green);height:8px;cursor:pointer}
+.kiblat-manual-hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.4}
+.kiblat-compass-wrap{touch-action:none;user-select:none}
+.kiblat-compass-wrap:active{cursor:grabbing}

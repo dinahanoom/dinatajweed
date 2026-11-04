@@ -59,6 +59,7 @@
       <button class="nav" data-page="hafalan">✦ <span>Target Hafalan</span></button>
       <button class="nav" data-page="murojaah">↻ <span>Murojaah</span></button>
       <button class="nav" data-page="catatan">▤ <span>Catatan</span></button>
+      <button class="nav" data-page="kiblat">🧭 <span>Cari Kiblat</span></button>
     </nav>
     <div class="sidebar-quote">
       <div>“</div>
@@ -67,6 +68,7 @@
     </div>
     <div class="side-bottom">Semoga setiap ayat menjadi cahaya. 🤍</div>
   </aside>
+  <div id="sidebarOverlay" class="sidebar-overlay" aria-hidden="true"></div>
 
   <main>
     <header class="topbar">
@@ -154,6 +156,7 @@
               <div id="juzGrid" class="juz-grid"></div>
             </div>
           </aside>
+  <div id="sidebarOverlay" class="sidebar-overlay" aria-hidden="true"></div>
           <article class="reader card">
             <div class="reader-head"><div class="reader-heading-main"><span id="readerJuz">Juz 1</span><h3 id="readerSurah">Memuat...</h3><div class="reader-controls"><select id="reciterSelect" class="reciter-select"><option value="alafasy">Mishary Rashid Alafasy</option><option value="yasser">Yasser Al-Dosari</option><option value="sudais">Abdurrahman As-Sudais</option></select><button class="tiny tafsir-surah-btn" id="tafsirSurahBtn" type="button">📖 Tafsir Surah</button></div></div><button class="more" id="readerTop">↑ Atas</button></div>
             <div id="tafsirSurahPanel" class="tafsir-surah-panel hidden" aria-live="polite"></div>
@@ -181,6 +184,47 @@
         <div class="page-heading"><div><span class="eyebrow">PENGULANGAN</span><h2>Murojaah</h2><p>Tandai materi yang sudah kamu murojaah hari ini.</p></div><button class="primary small" id="resetReview">Reset Hari Ini</button></div>
         <div class="card review-summary"><div class="review-ring large" id="reviewRingLarge">0%</div><div><h3>Jaga hafalanmu 🌿</h3><p id="reviewSummaryText">0 dari 30 juz sudah dimurojaah hari ini.</p><div class="big-progress"><i id="reviewBar"></i></div></div></div>
         <div id="reviewGrid" class="review-grid"></div>
+      </div>
+
+      
+      <div id="kiblat" class="page hidden">
+        <div class="page-heading">
+          <div>
+            <span class="eyebrow">ARAH KIBLAT</span>
+            <h2>Cari Kiblat</h2>
+            <p>Arahkan perangkat ke arah yang ditunjukkan jarum kompas menuju Ka'bah.</p>
+          </div>
+          <button class="primary small" id="startKiblat">↻ Mulai Lagi</button>
+        </div>
+        <div class="card kiblat-card">
+          <div class="kiblat-status" id="kiblatStatus">Tekan "Mulai Lagi" atau buka halaman ini untuk mengaktifkan.</div>
+          <div class="kiblat-compass-wrap" id="kiblatCompassWrap" title="Geser untuk memutar (mode laptop)">
+            <div class="kiblat-compass" id="kiblatCompass">
+              <div class="kiblat-mark n">U</div>
+              <div class="kiblat-mark e">T</div>
+              <div class="kiblat-mark s">S</div>
+              <div class="kiblat-mark w">B</div>
+              <div class="kiblat-kaaba">🕋</div>
+            </div>
+            <div class="kiblat-needle" id="kiblatNeedle">
+              <div class="needle-arrow"></div>
+            </div>
+          </div>
+          <div class="kiblat-info">
+            <div><span>Arah Kiblat</span><strong id="kiblatDegree">—°</strong></div>
+            <div><span>Arah Umum</span><strong id="kiblatDirection">—</strong></div>
+            <div><span>Bearing dari Utara</span><strong id="kiblatBearing">—</strong></div>
+            <div><span>Heading HP (live)</span><strong id="kiblatLiveHeading">—°</strong></div>
+            <div class="kiblat-loc-full"><span>Lokasi Anda</span><strong id="kiblatLocation">—</strong></div>
+          </div>
+          
+          <div id="kiblatManual" class="kiblat-manual hidden">
+            <label for="kiblatSlider">Putar heading (mode laptop / tanpa sensor)</label>
+            <input type="range" id="kiblatSlider" min="0" max="359" value="0" step="1">
+            <div class="kiblat-manual-hint">Klik &amp; geser lingkaran kompas, atau geser slider di atas. Di HP, sensor akan otomatis mengambil alih.</div>
+          </div>
+<p class="kiblat-hint">Izinkan <b>lokasi</b> dan <b>Motion &amp; Orientation</b>. Letakkan HP mendatar (layar menghadap langit). Saat kamu berputar, jarum merah akan bergerak menunjuk arah kiblat.</p>
+        </div>
       </div>
 
       <div id="catatan" class="page hidden">
